@@ -44,7 +44,7 @@ public class CategoryService implements ICategoryService{
         Optional<Category> optionalCategory = categoryRepository.findById(id);
         Category category = optionalCategory
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "Id", id));
-        category.setName(newCategory.getName());
+        category.setName(newCategory.getName()); // We actually need mapper here?
         categoryRepository.save(category);
     }
 }
