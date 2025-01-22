@@ -8,12 +8,12 @@ import com.org.ecommerce.payload.response.CategoryResponse;
 import com.org.ecommerce.repository.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CategoryService implements ICategoryService{
@@ -25,14 +25,21 @@ public class CategoryService implements ICategoryService{
     private ModelMapper modelMapper;
 
     @Override
-    public CategoryResponse getAll() {
-        List<Category> categories = categoryRepository.findAll();
+    public CategoryResponse getAll(Integer pageNumber, Integer pageSize) {
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize);
+        Page<Category> categoryPage = categoryRepository.findAll(pageDetails);
+        List<Category> categories = categoryPage.getContent();
         List<CategoryDTO> categoryDTOS = categories.stream()
                 .map(category -> modelMapper.map(category, CategoryDTO.class))
                 .toList();
-        CategoryResponse categoryResponse = new CategoryResponse();
-        categoryResponse.setContent(categoryDTOS);
-        return categoryResponse;
+        return CategoryResponse.builder()
+                .content(categoryDTOS)
+                .pageNumber(categoryPage.getNumber())
+                .pageSize(categoryPage.getSize())
+                .totalElements(categoryPage.getTotalElements())
+                .totalNumPages(categoryPage.getTotalPages())
+                .lastPage(categoryPage.isLast())
+                .build();
     }
 
     @Override
